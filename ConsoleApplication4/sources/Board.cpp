@@ -9,6 +9,8 @@ Board::Board() : printer("test", BOARD_WIDTH, BOARD_HEIGHT) {
 			this->area[i][j] = 0;
 		}
 	}
+
+	this->decideTarget();
 }
 
 void Board::loadBoard(const char* fname) {
@@ -22,14 +24,27 @@ void Board::loadBoard(const char* fname) {
 				this->area[i][j] = -1;
 		}
 	}
+
+	this->decideTarget();
 }
 
 bool Board::putPiece(uint8_t(*fig)[FIG_WIDTH], int x, int y) {
 	int fig_num, put_num;
 	int i, j;
+	POINT fig_t;
 
 	put_num = 0;
 	fig_num = 0;
+
+	fig_t.x = this->target.x - x;
+	fig_t.y = this->target.y - y;
+	if (fig_t.x < 0 || FIG_WIDTH <= fig_t.x || fig_t.y < 0 || FIG_HEIGHT <= fig_t.y) {
+		return false;
+	}
+	if (fig[fig_t.y][fig_t.x] == 0) {
+		return false;
+	}
+
 	for (i = 0; i < FIG_HEIGHT; i++) {
 		if (y + i < BOARD_HEIGHT){
 			for (j = 0; j < FIG_WIDTH; j++) {
@@ -47,6 +62,7 @@ bool Board::putPiece(uint8_t(*fig)[FIG_WIDTH], int x, int y) {
 	}
 
 	if (put_num == PIECE_SIZE) {
+		this->decideTarget();
 		return true;
 	}
 
@@ -79,6 +95,8 @@ void Board::deletePiece(int fig_num) {
 			}
 		}
 	}
+
+	this->decideTarget();
 }
 
 
@@ -196,3 +214,14 @@ void Board::printBoard(int wait_time) {
 	printer.print((uint8_t *)this->area, wait_time);
 }
 
+void Board::decideTarget() {
+	for (int y = 0; y < BOARD_HEIGHT; y++) {
+		for (int x = 0; x < BOARD_WIDTH; x++) {
+			if (this->area[y][x] == 0) {
+				this->target.y = y;
+				this->target.x = x;
+				return;
+			}
+		}
+	}
+}
