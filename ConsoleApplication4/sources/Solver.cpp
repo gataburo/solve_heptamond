@@ -91,14 +91,17 @@ bool Solver::isInclude(PIECE_POS p_pos, std::vector<PIECE_POS> list) {
 	//int itr = 0;
 
 	for (auto element : list) {
-		i = 0;
-		while (p_pos.mn[i] == element.mn[i] && p_pos.x[i] == element.x[i] && p_pos.y[i] == element.y[i]){
-			i++;
-			if (i == PIECE_NUM) {
-				//std::cout << itr << ", " << list.size() << "\n";
-				return true;
-			}
+		if (memcmp(&p_pos, &element, 72) == 0) {
+			return true;
 		}
+		//i = 0;
+		//while (p_pos.mn[i] == element.mn[i] && p_pos.x[i] == element.x[i] && p_pos.y[i] == element.y[i]){
+		//	i++;
+		//	if (i == PIECE_NUM) {
+		//		//std::cout << itr << ", " << list.size() << "\n";
+		//		return true;
+		//	}
+		//}
 		//itr++;
 	}
 	return false;
@@ -108,8 +111,10 @@ uint16_t Solver::calcHash() {
 	uint16_t hash_v = 0;
 
 	for (int i = 0; i < PIECE_NUM; i++) {
-		hash_v += (int)(this->p_pos.mn[i]%2) << (i % 12);
+		hash_v += (p_pos.mn[i] + 1) * p_pos.x[i] * p_pos.y[i] * i * (PIECE_NUM - i);
 	}
+	hash_v = hash_v >> 3;
+
 	return hash_v;
 }
 

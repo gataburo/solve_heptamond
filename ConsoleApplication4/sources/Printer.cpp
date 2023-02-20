@@ -7,6 +7,8 @@ Printer::Printer(const char* window_name, uint8_t width, uint8_t height) {
 	this->img_width = (height + width + 2) * ZOOM_RATE;
 	this->img_height = int((height + 1) * ZOOM_RATE * SQRT3) + 1;
 	this->img = cv::Mat::zeros(this->img_height, this->img_width, CV_8UC3);
+	cv::imshow(this->win_name, this->img);
+	cv::moveWindow(this->win_name, 600, 300);
 }
 
 void Printer::print(uint8_t* fig, int wait_time) {
@@ -50,15 +52,15 @@ void Printer::printTriangle(int y, int x, int color_index) {
 
 cv::Scalar Printer::refColorTable(int index) {
 	uint8_t g, b, r;
-	int gbrf = index / 3 + index % 3;
+	int gbrf = index;
 
 	if (index == 0) {
 		g = b = r = 0;
 	}
 	else {
-		g = gbrf * gbrf * 12;
-		b = (gbrf + 1) % 3 * gbrf * 12;
-		r = (gbrf + 2) % 3 * gbrf * 12;
+		g = (gbrf % 3) * 20 + (gbrf % 3 + 1) * gbrf * 3 * (24 - gbrf) * 2;
+		b = (gbrf % 6) * 8 + ((gbrf + 1) % 3 + 1) * gbrf * 3 * (24 - gbrf) * 2;
+		r = (gbrf % 9) * 5 + ((gbrf + 2) % 3 + 1) * gbrf * 3 * (24 - gbrf) * 2;
 	}
 	return cv::Scalar(g, b, r);
 }
