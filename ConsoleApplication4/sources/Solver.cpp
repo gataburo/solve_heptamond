@@ -38,11 +38,16 @@ uint8_t Solver::recusSolve() {
 	}
 
 	if (this->isAllPut()) {
-		if (!this->isInclude(this->p_pos, this->answers)) {
-			this->answers.push_back(this->p_pos);
-			this->bd_pt->printBoard(0);
-			return 1;
-		}
+		//if (!this->isInclude(this->p_pos, this->answers)) {
+		this->answers.push_back(this->p_pos);
+		saveData();
+		std::cout << "showing!!   ";
+		std::cout << "find answers: " << this->answers.size() << "\n";
+		this->bd_pt->printBoard(10000);
+		std::cout << "calculating...   ";
+		std::cout << "find answers: " << this->answers.size() << "\n";
+		return 1;
+		//}
 	}
 	
 	for (pn = 0; pn < PIECE_NUM; pn++) {
@@ -55,16 +60,16 @@ uint8_t Solver::recusSolve() {
 						this->p_pos.mn[pn] = mn;
 						this->p_pos.x[pn] = x;
 						this->p_pos.y[pn] = y;
-						hash_v = calcHash();
-						if (!this->isInclude(this->p_pos, this->tried_list[hash_v])) {
-							if (!this->bd_pt->isFragmentation()) {
-								this->bd_pt->printBoard(1);
-								this->put_n += 1;
-								ret = this->recusSolve();
-								this->put_n -= 1;
-							}
-							this->tried_list[hash_v].push_back(this->p_pos);
+						//hash_v = calcHash();
+						//if (!this->isInclude(this->p_pos, this->tried_list[hash_v])) {
+						if (!this->bd_pt->isFragmentation()) {
+							//this->bd_pt->printBoard(1);
+							this->put_n += 1;
+							ret = this->recusSolve();
+							this->put_n -= 1;
 						}
+							//this->tried_list[hash_v].push_back(this->p_pos);
+						//}
 						this->p_pos.mn[pn] = 255;
 						this->p_pos.x[pn] = 255;
 						this->p_pos.y[pn] = 255;
@@ -92,6 +97,7 @@ bool Solver::isInclude(PIECE_POS p_pos, std::vector<PIECE_POS> list) {
 
 	for (auto element : list) {
 		if (memcmp(&p_pos, &element, 72) == 0) {
+			std::cout << "true returned";
 			return true;
 		}
 		//i = 0;
