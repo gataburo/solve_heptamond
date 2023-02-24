@@ -115,12 +115,11 @@ bool Board::isFilled() {
 	return true;
 }
 
+uint8_t workspace[BOARD_HEIGHT][BOARD_WIDTH];
+uint8_t backlog[BOARD_HEIGHT][BOARD_WIDTH];
 bool Board::isFragmentation() {
 	uint8_t i, j, k;
-	uint8_t workspace[BOARD_HEIGHT][BOARD_WIDTH];
-	uint8_t backlog[BOARD_HEIGHT][BOARD_WIDTH];
 	uint8_t island_num;
-	//uint8_t max_v;
 	uint8_t min_v[2];
 	bool loopflag;
 	
