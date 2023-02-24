@@ -5,147 +5,108 @@
 Solver::Solver(AdvPieces* adv_pcs_pt, Board* bd_pt){
 	this->adv_pcs_pt = adv_pcs_pt;
 	this->bd_pt = bd_pt;
-	for (int i = 0; i < PIECE_NUM; i++) {
-		this->p_pos.mn[i] = 255;
-		this->p_pos.x[i] = 255;
-		this->p_pos.y[i] = 255;
-	}
 	this->readData();
-	put_n = 0;
-}
-
-Solver::~Solver() {
-	// ˆÓ–¡‚È‚³‚»‚¤
-	this->saveData();
 }
 
 uint8_t Solver::solve() {
-	this->t = time(NULL);
-	return recusSolve();
-}
+	uint8_t pn, mn, x, y;
+	uint8_t i;
+	uint8_t mn_size;
+	PIECE_POS p_pos;
+	bool arl_put[PIECE_NUM];
+	time_t t_init;
 
-uint8_t Solver::recusSolve() {
-	uint8_t pn, mn, x, y, ret;
-	uint16_t hash_v;
-	ret = 0;
-
-	if (_kbhit()) {
-		std::cout << "hit\n";
-		_getch();
-		this->bd_pt->printBoard(1);
-		saveData();
-		std::cout << "saved\n";
-		this->bd_pt->printBoard(0);
+	t_init = time(NULL);
+	for (int i = 0; i < PIECE_NUM; i++) {
+		p_pos.pn[i] = 0;
+		p_pos.mn[i] = 0;
+		p_pos.y[i] = 0;
+		p_pos.x[i] = 0;
+		arl_put[i] = false;
 	}
-
-	if (this->isAllPut()) {
-		//if (!this->isInclude(this->p_pos, this->answers)) {
-		this->answers.push_back(this->p_pos);
-		//saveData();
-		//std::cout << "showing!!   ";
-		//std::cout << "find answers: " << this->answers.size() << "\n";
-		this->bd_pt->printBoard(1);
-		//std::cout << "calculating...   ";
-		std::cout << "elapsed time: " << time(NULL) - this->t << "[s], ";
-		std::cout << "find answers: " << this->answers.size() << "\n";
-		return 1;
-		//}
-	}
-	
-	for (pn = 0; pn < PIECE_NUM; pn++) {
-		if(this->p_pos.mn[pn] != 255)
-			continue;
-		for (mn = 0; mn < this->adv_pcs_pt->getPieces(pn).size(); mn++) {
-			for (y = 0; y < BOARD_HEIGHT; y++) {
-				for (x = 0; x < BOARD_WIDTH; x += 2) {
-					if (this->bd_pt->putPiece(this->adv_pcs_pt->getFig(pn, mn), x, y) == true) {
-						this->p_pos.mn[pn] = mn;
-						this->p_pos.x[pn] = x;
-						this->p_pos.y[pn] = y;
-						//hash_v = calcHash();
-						//if (!this->isInclude(this->p_pos, this->tried_list[hash_v])) {
-						if (!this->bd_pt->isFragmentation()) {
-							//this->bd_pt->printBoard(1);
-							this->put_n += 1;
-							ret = this->recusSolve();
-							this->put_n -= 1;
+	i = 0;
+	while (1) {
+		for (pn = p_pos.pn[i]; pn < PIECE_NUM; pn++) {
+			if (arl_put[pn])
+				continue;
+			mn_size = this->adv_pcs_pt->getPieces(pn).size();
+			for (mn = p_pos.mn[i]; mn < mn_size; mn++) {
+				for (y = p_pos.y[i]; y < BOARD_HEIGHT; y++) {
+					for (x = p_pos.x[i]; x < BOARD_WIDTH; x += 2) {
+						if (this->bd_pt->putPiece(this->adv_pcs_pt->getFig(pn, mn), x, y) == true) {
+							if (this->bd_pt->isFragmentation()) {
+								this->bd_pt->deletePiece(pn + 1);
+							}
+							else {
+								p_pos.pn[i] = pn;
+								p_pos.mn[i] = mn;
+								p_pos.y[i] = y;
+								p_pos.x[i] = x += 2;
+								arl_put[pn] = true;
+								i++;
+								if (i == PIECE_NUM) {
+									this->answers.push_back(p_pos);
+									this->bd_pt->printBoard(1);
+									std::cout << "elapsed time: " << time(NULL) - t_init << "[s], ";
+									std::cout << "find answers: " << this->answers.size() << "\n";
+									this->bd_pt->deletePiece(pn + 1);
+									arl_put[pn] = false;
+									i = PIECE_NUM - 2;
+									p_pos.pn[PIECE_NUM - 1] = 0;
+									p_pos.mn[PIECE_NUM - 1] = 0;
+									p_pos.y[PIECE_NUM - 1] = 0;
+									p_pos.x[PIECE_NUM - 1] = 0;
+									this->bd_pt->deletePiece(p_pos.pn[i] + 1);
+									arl_put[p_pos.pn[i]] = false;
+								}
+								pn = mn = y = 254;
+								x = 253;
+							}
 						}
-							//this->tried_list[hash_v].push_back(this->p_pos);
-						//}
-						this->p_pos.mn[pn] = 255;
-						this->p_pos.x[pn] = 255;
-						this->p_pos.y[pn] = 255;
-						this->bd_pt->deletePiece(pn + 1);
+					}
+					if (x != 255) {
+						p_pos.x[i] = 0;
 					}
 				}
+				if (y != 255) {
+					p_pos.y[i] = 0;
+					p_pos.x[i] = 0;
+				}
+			}
+			if (mn != 255) {
+				p_pos.mn[i] = 0;
+				p_pos.y[i] = 0;
+				p_pos.x[i] = 0;
+			}
+		}
+		if (pn != 255) {
+			if (i != 0) {
+				p_pos.pn[i] = 0;
+				p_pos.mn[i] = 0;
+				p_pos.y[i] = 0;
+				p_pos.x[i] = 0;
+				i--;
+				this->bd_pt->deletePiece(p_pos.pn[i] + 1);
+				arl_put[p_pos.pn[i]] = false;
+			}
+			else {
+				break;
 			}
 		}
 	}
-	
+	saveData();
 	
 	return 0;
 }
 
-bool Solver::isAllPut() {
-	if (put_n == PIECE_NUM)
-		return true;
-	else
-		return false;
-}
-
-bool Solver::isInclude(PIECE_POS p_pos, std::vector<PIECE_POS> list) {
-	uint8_t i;
-	//int itr = 0;
-
-	for (auto element : list) {
-		if (memcmp(&p_pos, &element, 72) == 0) {
-			std::cout << "true returned";
-			return true;
-		}
-		//i = 0;
-		//while (p_pos.mn[i] == element.mn[i] && p_pos.x[i] == element.x[i] && p_pos.y[i] == element.y[i]){
-		//	i++;
-		//	if (i == PIECE_NUM) {
-		//		//std::cout << itr << ", " << list.size() << "\n";
-		//		return true;
-		//	}
-		//}
-		//itr++;
-	}
-	return false;
-}
-
-uint16_t Solver::calcHash() {
-	uint16_t hash_v = 0;
-
-	for (int i = 0; i < PIECE_NUM; i++) {
-		hash_v += (p_pos.mn[i] + 1) * p_pos.x[i] * p_pos.y[i] * i * (PIECE_NUM - i);
-	}
-	hash_v = hash_v >> 3;
-
-	return hash_v;
-}
-
 bool Solver::saveData() {
-	int i;
-
 	writeBinary(SAVE_FILE_ANS, this->answers);
-	for (i = 0; i < HASH_MAX; i++) {
-		if (!this->tried_list[i].empty()) {
-			writeBinary(SAVE_FILE_TRY + to_string(i) + ".bin", this->tried_list[i]);
-		}
-	}
 
 	return true;
 }
 
 bool Solver::readData() {
-	int i;
-
 	readBinary(SAVE_FILE_ANS, this->answers);
-	for (i = 0; i < HASH_MAX; i++) {
-		readBinary(SAVE_FILE_TRY + to_string(i) + ".bin", this->tried_list[i]);
-	}
 
 	return true;
 }
@@ -166,7 +127,7 @@ bool Solver::readBinary(std::string filepath, std::vector<PIECE_POS>& vec) {
 	if (!fin)
 		return false;
 	while (!fin.eof()) {
-		fin.read((char*)&buf, PIECE_NUM * 3);
+		fin.read((char*)&buf, PIECE_NUM * 4);
 		vec.push_back(buf);
 	}
 	fin.close();
