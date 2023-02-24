@@ -40,10 +40,10 @@ uint8_t Solver::recusSolve() {
 	if (this->isAllPut()) {
 		//if (!this->isInclude(this->p_pos, this->answers)) {
 		this->answers.push_back(this->p_pos);
-		saveData();
+		//saveData();
 		std::cout << "showing!!   ";
 		std::cout << "find answers: " << this->answers.size() << "\n";
-		this->bd_pt->printBoard(10000);
+		this->bd_pt->printBoard(1000);
 		std::cout << "calculating...   ";
 		std::cout << "find answers: " << this->answers.size() << "\n";
 		return 1;

@@ -118,10 +118,10 @@ bool Board::isFilled() {
 bool Board::isFragmentation() {
 	uint8_t i, j;
 	uint8_t workspace[BOARD_HEIGHT][BOARD_WIDTH];
-	//uint8_t backlog[BOARD_HEIGHT][BOARD_WIDTH];
+	uint8_t backlog[BOARD_HEIGHT][BOARD_WIDTH];
 	uint8_t island_num;
 	//uint8_t max_v;
-	uint8_t min_v;
+	uint8_t min_v[2];
 	bool loopflag;
 	
 	//for (i = 0; i < BOARD_HEIGHT; i++) {
@@ -137,15 +137,15 @@ bool Board::isFragmentation() {
 	for (i = 0; i < BOARD_HEIGHT; i++) {
 		for (j = 0; j < BOARD_WIDTH; j++) {
 			if (this->area[i][j] == 0) {
-				min_v = island_num;
+				min_v[0] = island_num;
 				// check up
 				if (i != 0 && j % 2 == 0)
-					if (workspace[i - 1][j + 1] < min_v) min_v = workspace[i - 1][j + 1];
+					if (workspace[i - 1][j + 1] < min_v[0]) min_v[0] = workspace[i - 1][j + 1];
 				// check left
 				if (j != 0)
-					if (workspace[i][j - 1] < min_v) min_v = workspace[i][j - 1];
-				workspace[i][j] = min_v;
-				island_num = min_v + 1;
+					if (workspace[i][j - 1] < min_v[0]) min_v[0] = workspace[i][j - 1];
+				workspace[i][j] = min_v[0];
+				island_num = min_v[0] + 1;
 			}
 			else {
 				workspace[i][j] = 255;
@@ -153,42 +153,38 @@ bool Board::isFragmentation() {
 		}
 	}
 
-	//while (!std::equal(workspace, workspace+BOARD_HEIGHT*BOARD_WIDTH, backlog)) {
 	loopflag = true;
 	while (loopflag) {
 		loopflag = false;
+		std::memcpy(backlog, workspace, BOARD_HEIGHT * BOARD_WIDTH);
 		for (i = 0; i < BOARD_HEIGHT; i++) {
-			for (j = 0; j < BOARD_WIDTH; j++) {
-				//std::cout << std::setfill('0') << std::right << std::setw(3) << int(workspace[i][j]);
-				//std::cout << " ";
+			for (j = 1; j < BOARD_WIDTH; j+=2) {
 				if (workspace[i][j] != 255) {
-					// set log
-					//backlog[i][j] = workspace[i][j];
-
-					// find min_value in near
-					min_v = workspace[i][j];
-					// check up
-					if (i != 0 && j % 2 == 0)
-						if (workspace[i - 1][j + 1] < min_v) min_v = workspace[i - 1][j + 1];
+					min_v[0] = workspace[i][j];
+					min_v[1] = workspace[i][j - 1];
 					// check down
-					if (i != BOARD_HEIGHT - 1 && j % 2 == 1)
-						if (workspace[i + 1][j - 1] < min_v) min_v = workspace[i + 1][j - 1];
-					// check left
-					if (j != 0)
-						if (workspace[i][j - 1] < min_v) min_v = workspace[i][j - 1];
+					if (i != BOARD_HEIGHT - 1)
+						if (workspace[i + 1][j - 1] < min_v[0]) min_v[0] = workspace[i + 1][j - 1];
 					// check right
 					if (j != BOARD_WIDTH - 1)
-						if (workspace[i][j + 1] < min_v) min_v = workspace[i][j + 1];
-
-					if (workspace[i][j] != min_v) {
-						// set min_value in near
-						workspace[i][j] = min_v;
-						loopflag = true;
+						if (workspace[i][j + 1] < min_v[1]) min_v[1] = workspace[i][j + 1];
+					if (min_v[0] > min_v[1]){
+						min_v[0] = min_v[1];
 					}
+						
+					workspace[i][j] = min_v[0];
+					if (workspace[i][j - 1] != 255)
+						workspace[i][j - 1] = min_v[0];
+					if (i != BOARD_HEIGHT - 1)
+						if (workspace[i + 1][j - 1] != 255)
+							workspace[i + 1][j - 1] = min_v[0];
+					if (j != BOARD_WIDTH - 1)
+						if (workspace[i][j + 1] != 255)
+							workspace[i][j + 1] = min_v[0];
 				}
 			}
-			//std::cout << "\n";
 		}
+		loopflag = std::memcmp(backlog, workspace, BOARD_HEIGHT * BOARD_WIDTH);
 	}
 
 	for (i = 0; i < BOARD_HEIGHT; i++) {
