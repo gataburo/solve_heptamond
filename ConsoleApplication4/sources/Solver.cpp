@@ -20,6 +20,7 @@ Solver::~Solver() {
 }
 
 uint8_t Solver::solve() {
+	this->t = time(NULL);
 	return recusSolve();
 }
 
@@ -41,10 +42,11 @@ uint8_t Solver::recusSolve() {
 		//if (!this->isInclude(this->p_pos, this->answers)) {
 		this->answers.push_back(this->p_pos);
 		//saveData();
-		std::cout << "showing!!   ";
-		std::cout << "find answers: " << this->answers.size() << "\n";
-		this->bd_pt->printBoard(1000);
-		std::cout << "calculating...   ";
+		//std::cout << "showing!!   ";
+		//std::cout << "find answers: " << this->answers.size() << "\n";
+		this->bd_pt->printBoard(1);
+		//std::cout << "calculating...   ";
+		std::cout << "elapsed time: " << time(NULL) - this->t << "[s], ";
 		std::cout << "find answers: " << this->answers.size() << "\n";
 		return 1;
 		//}

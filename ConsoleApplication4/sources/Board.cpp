@@ -116,7 +116,7 @@ bool Board::isFilled() {
 }
 
 bool Board::isFragmentation() {
-	uint8_t i, j;
+	uint8_t i, j, k;
 	uint8_t workspace[BOARD_HEIGHT][BOARD_WIDTH];
 	uint8_t backlog[BOARD_HEIGHT][BOARD_WIDTH];
 	uint8_t island_num;
@@ -157,30 +157,32 @@ bool Board::isFragmentation() {
 	while (loopflag) {
 		loopflag = false;
 		std::memcpy(backlog, workspace, BOARD_HEIGHT * BOARD_WIDTH);
-		for (i = 0; i < BOARD_HEIGHT; i++) {
-			for (j = 1; j < BOARD_WIDTH; j+=2) {
-				if (workspace[i][j] != 255) {
-					min_v[0] = workspace[i][j];
-					min_v[1] = workspace[i][j - 1];
-					// check down
-					if (i != BOARD_HEIGHT - 1)
-						if (workspace[i + 1][j - 1] < min_v[0]) min_v[0] = workspace[i + 1][j - 1];
-					// check right
-					if (j != BOARD_WIDTH - 1)
-						if (workspace[i][j + 1] < min_v[1]) min_v[1] = workspace[i][j + 1];
-					if (min_v[0] > min_v[1]){
-						min_v[0] = min_v[1];
+		for (k = 0; k < 2; k++) {
+			for (i = 0; i < BOARD_HEIGHT; i++) {
+				for (j = 1 + k * 2; j < BOARD_WIDTH; j += 4) {
+					if (workspace[i][j] != 255) {
+						min_v[0] = workspace[i][j];
+						min_v[1] = workspace[i][j - 1];
+						// check down
+						if (i != BOARD_HEIGHT - 1)
+							if (workspace[i + 1][j - 1] < min_v[0]) min_v[0] = workspace[i + 1][j - 1];
+						// check right
+						if (j != BOARD_WIDTH - 1)
+							if (workspace[i][j + 1] < min_v[1]) min_v[1] = workspace[i][j + 1];
+						if (min_v[0] > min_v[1]) {
+							min_v[0] = min_v[1];
+						}
+
+						workspace[i][j] = min_v[0];
+						if (workspace[i][j - 1] != 255)
+							workspace[i][j - 1] = min_v[0];
+						if (i != BOARD_HEIGHT - 1)
+							if (workspace[i + 1][j - 1] != 255)
+								workspace[i + 1][j - 1] = min_v[0];
+						if (j != BOARD_WIDTH - 1)
+							if (workspace[i][j + 1] != 255)
+								workspace[i][j + 1] = min_v[0];
 					}
-						
-					workspace[i][j] = min_v[0];
-					if (workspace[i][j - 1] != 255)
-						workspace[i][j - 1] = min_v[0];
-					if (i != BOARD_HEIGHT - 1)
-						if (workspace[i + 1][j - 1] != 255)
-							workspace[i + 1][j - 1] = min_v[0];
-					if (j != BOARD_WIDTH - 1)
-						if (workspace[i][j + 1] != 255)
-							workspace[i][j + 1] = min_v[0];
 				}
 			}
 		}

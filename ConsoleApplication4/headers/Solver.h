@@ -1,5 +1,6 @@
 #include "AdvPieces.h"
 #include "Board.h"
+#include <time.h>
 
 typedef struct {
 	uint8_t mn[PIECE_NUM];
@@ -14,6 +15,7 @@ private:
 	uint8_t put_n;
 	PIECE_POS p_pos;
 	std::vector<PIECE_POS> answers, tried_list[HASH_MAX];
+	time_t t;
 public:
 	Solver(AdvPieces* adv_pcs_pt_pt, Board* bd_pt);
 	~Solver();
